@@ -7,6 +7,9 @@ on:
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
 
 jobs:
   simple_deployment_pipeline:
@@ -30,20 +33,32 @@ jobs:
         run: npm run build
 
       - name: Start application in production mode
-        run: npm run start-prod & # Start the server in the background
+        run: npm run start-prod &
         env:
-          NODE_ENV: production # Ensure production environment is set
+          NODE_ENV: production
 
       - name: Wait for server to start
-        run: npx wait-on http://localhost:5000 # Wait for the application to be accessible
+        run: npx wait-on http://localhost:5000
 
       - name: Run E2E tests
         uses: cypress-io/github-action@v5
         with:
-          command: npm run test:e2e # Command to run your E2E tests
-          wait-on: http://localhost:5000 # Wait until the application is available
+          command: npm run test:e2e
+          wait-on: http://localhost:5000
 
       - name: Trigger deployment
         if: ${{ github.event_name == 'push' }}
         run: |
           curl -X POST https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+
+  tag_release:
+    needs: simple_deployment_pipeline
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.71.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: true
+          TAG_NAME: "v1.0.0"
+          VERSION_TYPE: "patch"
