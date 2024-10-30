@@ -26,5 +26,17 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Run tests
-        run: npm test
+      - name: Start application in production mode
+        run: npm run start-prod & # Start the server in the background
+        env:
+          NODE_ENV: production # Ensure production environment is set
+
+      - name: Wait for server to start
+        run: npx wait-on http://localhost:5000 # Wait for the application to be accessible
+
+      - name: Run E2E tests
+        uses: cypress-io/github-action@v5
+        with:
+          command: npm run test:e2e # Command to run your E2E tests
+          start: npm run start-prod # Command to start the application
+          wait-on: http://localhost:5000 # Wait until the application is available
