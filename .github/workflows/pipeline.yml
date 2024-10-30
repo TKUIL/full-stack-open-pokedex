@@ -38,5 +38,4 @@ jobs:
         uses: cypress-io/github-action@v5
         with:
           command: npm run test:e2e # Command to run your E2E tests
-          start: npm run start-prod # Command to start the application
           wait-on: http://localhost:5000 # Wait until the application is available
