@@ -51,6 +51,26 @@ jobs:
         run: |
           curl -X POST https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
 
+      - name: Notify Discord of deployment success
+        if: ${{ success() }}
+        uses: rjstone/discord-webhook-notify@v1.0.4
+        with:
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          severity: info
+          text: "🚀 A new version has been successfully deployed to production!"
+          description: "Deployment Success"
+          details: "The latest version has been deployed to production."
+
+      - name: Notify Discord of build failure
+        if: ${{ failure() }}
+        uses: rjstone/discord-webhook-notify@v1.0.4
+        with:
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          severity: error
+          text: "❌ Build failed! Commit: `${{ github.sha }}`. Check the logs for more details."
+          description: "Build Failure"
+          details: "The build process has failed for commit `${{ github.sha }}`. Please review the logs for more information."
+
   tag_release:
     needs: simple_deployment_pipeline
     runs-on: ubuntu-20.04
@@ -66,30 +86,3 @@ jobs:
           DRY_RUN: false
           TAG_NAME: "v1.0.0"
           VERSION_TYPE: "patch"
-
-  notify:
-    runs-on: ubuntu-20.04
-    needs: simple_deployment_pipeline
-    if: ${{ always() }} # Runs regardless of success or failure
-    steps:
-      - name: Notify Discord (Deployment Success)
-        if: ${{ steps.trigger_deploy.conclusion == 'success' }}
-        uses: sarisia/actions-status-discord@v1.15.0
-        with:
-          title: A new version of Pokedex deployed!
-          status: Success
-          color: 0x00ff00
-          description: "Commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) built and deployed to [Production URL](${{ vars.DEPLOYMENT_URL }})!"
-          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: Github Actions
-
-      - name: Notify Discord (Build Failure)
-        if: ${{ failure() }}
-        uses: sarisia/actions-status-discord@v1.15.0
-        with:
-          title: Build failed
-          status: Failure
-          color: 0xff0000
-          description: "Pipeline failed for commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})."
-          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: Github Actions
