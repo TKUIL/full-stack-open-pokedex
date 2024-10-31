@@ -63,6 +63,25 @@ jobs:
         uses: anothrNick/github-tag-action@1.71.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: false # Change to true for testing
-          TAG_NAME: "v1.0.0" # Adjust for dynamic tagging
+          DRY_RUN: false
+          TAG_NAME: "v1.0.0"
           VERSION_TYPE: "patch"
+
+  notify:
+    runs-on: ubuntu-20.04
+    needs: simple_deployment_pipeline
+    if: ${{ always() }} # Ensure this runs regardless of success or failure
+    steps:
+      - name: Notify Discord of deployment success
+        if: ${{ success() && github.event_name == 'push' }}
+        uses: rjstone/discord-webhook-notify@v1.0.4
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          message: "🚀 A new version has been successfully deployed to production!"
+
+      - name: Notify Discord of build failure
+        if: ${{ failure() }}
+        uses: rjstone/discord-webhook-notify@v1.0.4
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          message: "❌ Build failed! Commit: `${{ github.sha }}`. Check the logs for more details."
