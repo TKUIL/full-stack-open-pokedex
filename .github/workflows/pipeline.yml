@@ -53,23 +53,25 @@ jobs:
 
       - name: Notify Discord of deployment success
         if: ${{ success() }}
-        uses: rjstone/discord-webhook-notify@v1.0.4
+        uses: sarisia/actions-status-discord@v1.15.0
         with:
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          severity: info
-          text: "🚀 A new version has been successfully deployed to production!"
-          description: "Deployment Success"
-          details: "The latest version has been deployed to production."
+          title: A new version of Pokedex deployed
+          status: Success
+          color: 0x00ff00 # success
+          description: "Deployed to https://full-stack-open-pokedex-s7q2.onrender.com/ by ${{ github.actor }}"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: Github Actions
 
       - name: Notify Discord of build failure
         if: ${{ failure() }}
-        uses: rjstone/discord-webhook-notify@v1.0.4
+        uses: sarisia/actions-status-discord@v1.15.0
         with:
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          severity: error
-          text: "❌ Build failed! Commit: `${{ github.sha }}`. Check the logs for more details."
-          description: "Build Failure"
-          details: "The build process has failed for commit `${{ github.sha }}`. Please review the logs for more information."
+          title: Build failed
+          status: Failure
+          color: 0xff0000 #fail
+          description: "Commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) broke the build"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: Github Actions
 
   tag_release:
     needs: simple_deployment_pipeline
