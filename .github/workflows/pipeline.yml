@@ -76,12 +76,12 @@ jobs:
         if: ${{ success() && github.event_name == 'push' }}
         uses: rjstone/discord-webhook-notify@v1.0.4
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          message: "🚀 A new version has been successfully deployed to production!"
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          text: "🚀 A new version has been successfully deployed to production!"
 
       - name: Notify Discord of build failure
         if: ${{ failure() }}
         uses: rjstone/discord-webhook-notify@v1.0.4
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          message: "❌ Build failed! Commit: `${{ github.sha }}`. Check the logs for more details."
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          text: "❌ Build failed! Commit: `${{ github.sha }}`. Check the logs for more details."
