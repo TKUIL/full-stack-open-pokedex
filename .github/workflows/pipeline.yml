@@ -70,24 +70,24 @@ jobs:
   notify:
     runs-on: ubuntu-20.04
     needs: simple_deployment_pipeline
-    if: ${{ always() }} # Ensure this runs regardless of success or failure
+    if: ${{ always() }} # Runs regardless of success or failure
     steps:
-      - name: Notify Discord of deployment success
-        if: ${{ success() && github.event_name == 'push' }}
-        uses: rjstone/discord-webhook-notify@v1.0.4
+      - name: Discord webhook (deploy)
+        if: ${{ steps.deploy.outcome == 'success' }}
+        uses: rjstone/discord-webhook-notify@89b0bf43c2c8514f70d0dcba4a706b904e8a3112
         with:
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          severity: info # Set severity to info for success
+          description: Commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) built and [deployed](${{ vars.DEPLOYMENT_URL }})!
+          footer: Triggered by ${{ github.triggering_actor }}
+          severity: info
           text: "🚀 A new version has been successfully deployed to production!"
-          description: "Deployment Success"
-          details: "The latest version has been deployed to production."
-
-      - name: Notify Discord of build failure
-        if: ${{ failure() }}
-        uses: rjstone/discord-webhook-notify@v1.0.4
-        with:
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          severity: error # Set severity to error for failures
+
+      - name: Discord webhook (failure)
+        if: ${{ failure() }}
+        uses: rjstone/discord-webhook-notify@89b0bf43c2c8514f70d0dcba4a706b904e8a3112
+        with:
+          description: Pipeline failed for commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}).
+          footer: Triggered by ${{ github.triggering_actor }}
+          severity: error
           text: "❌ Build failed! Commit: `${{ github.sha }}`. Check the logs for more details."
-          description: "Build Failure"
-          details: "The build process has failed for commit `${{ github.sha }}`. Please review the logs for more information."
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
