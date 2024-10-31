@@ -72,22 +72,24 @@ jobs:
     needs: simple_deployment_pipeline
     if: ${{ always() }} # Runs regardless of success or failure
     steps:
-      - name: Discord webhook (deploy)
-        if: ${{ steps.deploy.outcome == 'success' }}
-        uses: rjstone/discord-webhook-notify@89b0bf43c2c8514f70d0dcba4a706b904e8a3112
+      - name: Notify Discord (Deployment Success)
+        if: ${{ steps.trigger_deploy.conclusion == 'success' }}
+        uses: sarisia/actions-status-discord@v1.15.0
         with:
-          description: Commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) built and [deployed](${{ vars.DEPLOYMENT_URL }})!
-          footer: Triggered by ${{ github.triggering_actor }}
-          severity: info
-          text: "🚀 A new version has been successfully deployed to production!"
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: A new version of Pokedex deployed!
+          status: Success
+          color: 0x00ff00
+          description: "Commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) built and deployed to [Production URL](${{ vars.DEPLOYMENT_URL }})!"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: Github Actions
 
-      - name: Discord webhook (failure)
+      - name: Notify Discord (Build Failure)
         if: ${{ failure() }}
-        uses: rjstone/discord-webhook-notify@89b0bf43c2c8514f70d0dcba4a706b904e8a3112
+        uses: sarisia/actions-status-discord@v1.15.0
         with:
-          description: Pipeline failed for commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}).
-          footer: Triggered by ${{ github.triggering_actor }}
-          severity: error
-          text: "❌ Build failed! Commit: `${{ github.sha }}`. Check the logs for more details."
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: Build failed
+          status: Failure
+          color: 0xff0000
+          description: "Pipeline failed for commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})."
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: Github Actions
